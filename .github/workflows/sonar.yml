@@ -17,9 +17,9 @@ jobs:
         with:
           fetch-depth: 0
           
-      # The new official sub-action to install the build wrapper
+      # Updated to v6
       - name: Install build-wrapper
-        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v4
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v6
         
       - name: Create build directory
         run: mkdir -p build
@@ -28,9 +28,9 @@ jobs:
         run: |
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} gcc -Wall -Wextra src/main.c -o build/microcontrol
 
-      # The new unified official scan action
+      # Updated to v6
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
