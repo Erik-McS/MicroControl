@@ -1,0 +1,23 @@
+# --- Compiled Object files ---
+*.o
+
+# --- Build directory ---
+# The leading slash ensures it only ignores the build folder at the root
+# The trailing slash ensures it ignores the entire directory and its contents
+/build/
+
+# --- Compiled Executables ---
+# Ignore the final binary program (assuming you name it micro-sim)
+microcontrol
+# Ignore Windows executables, just in case you ever compile it there
+*.exe
+*.out
+
+# --- OS Generated Files ---
+# Keeps Mac/Windows hidden files out of your repo
+.DS_Store
+Thumbs.db
+
+# --- SonarQube ---
+.scannerwork/
+bw-output/
