@@ -6,7 +6,7 @@
 
 #define MAX_RAM_SIZE 256
 #define DEBUG 1
-
+#define FLAG_ZERO (1U<<0) /* 0000 0001 */
 
 typedef enum Instructions{
     INS_NOP = 0x00,
@@ -16,7 +16,8 @@ typedef enum Instructions{
     INS_ADD = 0x03,
     INS_JMP = 0x04,
     INS_OUT = 0x05,
-    INS_STA = 0x06
+    INS_STA = 0x06,
+    INS_JZ = 0x07
 }Instructions;
 
 /* Defines the cpu*/
@@ -30,7 +31,9 @@ typedef struct cpu
     /* PC */
     uint8_t program_counter;
     bool is_halted;
+    uint8_t status_flags;
 }cpu;
+
 
 void cpu_unit(cpu* current_cpu);
 
