@@ -4,6 +4,8 @@ A custom 8-bit Virtual Machine and CPU Emulator built entirely from scratch in s
 
 This project simulates a basic Von Neumann architecture, featuring a modular Fetch-Decode-Execute cycle, an Arithmetic Logic Unit (ALU), and dynamic binary file I/O for loading custom "cartridges" (ROMs) into virtual memory.
 
+--- This is a samll project to revise on my C and CA knowledge. I am fully aware that i reinvent the wheel here. ---
+
 ## ⚙️ Hardware Specifications
 * **Memory:** 256 bytes of virtual RAM.
 * **Registers:** Two general-purpose 8-bit registers (A and B).
