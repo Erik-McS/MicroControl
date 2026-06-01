@@ -23,9 +23,13 @@ jobs:
         
       - name: Create build directory
         run: mkdir -p build
-        
+      # testing
+      - name: Testing
+        run: make test
+
       - name: Run build-wrapper
         run: |
+          make clean
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
 
       # Updated to v6
