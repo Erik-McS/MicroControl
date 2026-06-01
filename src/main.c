@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     fread(micro_cpu.ram,1,MAX_RAM_SIZE,rom);
     fclose(rom);
 
-    /* cpu loop*/
+    /* cpu loop -- Control Unit*/
     while (is_running){
         /*get the instruction*/
         uint8_t current_instruction = micro_cpu.ram[micro_cpu.program_counter];
@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
                 /* do nothing*/
                 micro_cpu.program_counter++;
                 break;
+            /* Addition */    
             case INS_ADD:
                 micro_cpu.reg_a = alu_compute(ALU_ADD,micro_cpu.reg_a,micro_cpu.reg_b) ;
                 micro_cpu.program_counter++;
@@ -51,6 +52,15 @@ int main(int argc, char* argv[]) {
             case INS_HLT:
                 /* exit*/
                 is_running = false;
+                break;
+            case INS_JMP:
+                micro_cpu.program_counter++;
+                /* update PC with the jump address*/
+                micro_cpu.program_counter = micro_cpu.ram[micro_cpu.program_counter];
+                break;
+            case INS_OUT:
+                micro_cpu.program_counter++;
+                printf("Value in reg_a: %02X\n",micro_cpu.reg_a);
                 break;
             default:
                 printf("Unknown command, exiting\n");
