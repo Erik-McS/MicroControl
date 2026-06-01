@@ -14,6 +14,10 @@ $(TARGET): $(SRC)
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
-# Clean up build artifacts
 clean:
 	rm -rf build/*
+
+test: src/alu.c tests/test_alu.c
+	@mkdir -p build
+	$(CC) $(CFLAGS) -o build/test_alu src/alu.c tests/test_alu.c
+	./build/test_alu
