@@ -14,6 +14,11 @@ $(TARGET): $(SRC)
 	@mkdir -p build
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
+# Target to compile the standalone assembler
+asm: src/asm.c
+	@mkdir -p build
+	$(CC) $(CFLAGS) -o build/asm src/asm.c
+
 clean:
 	rm -rf build/*
 
