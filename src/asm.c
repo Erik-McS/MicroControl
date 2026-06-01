@@ -56,8 +56,15 @@ int main (int argc, char* argv[]){
         #if DEBUG
         printf("[line %d] %s\n", line_number,line);
         #endif
-        /* TODO: parsing instructions.*/
+        /* storing instruction and argument*/
+        char instruction[64]={0};
+        char argument[64]={0};
 
+        int arg_found = sscanf(line,"%63s %63s",instruction,argument);
+        /* if empty line*/
+        if(arg_found == 0){continue;}
+        if(arg_found == 1){printf("[Line %02d] Opcode: %s (no Operand)",line_number,instruction);}
+        if(arg_found == 2){printf("[Line %02d] Opcode: %s Operand: %s",line_number,instruction,argument);}
     }
 
     /* Closing resources*/
