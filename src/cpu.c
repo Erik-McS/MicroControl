@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 void cpu_unit(cpu* current_cpu){
+    
         uint8_t current_instruction = current_cpu->ram[current_cpu->program_counter];
 
         switch(current_instruction){
@@ -50,6 +51,12 @@ void cpu_unit(cpu* current_cpu){
                 current_cpu->ram[address] = current_cpu->reg_a;
                 current_cpu->program_counter++;
                 break;}
+            case INS_STB:{
+                current_cpu->program_counter++;
+                uint8_t address = current_cpu->ram[current_cpu->program_counter];
+                current_cpu->ram[address] = current_cpu->reg_b;
+                current_cpu->program_counter++;
+                break;}                
             /* jump if zero*/
             case INS_JZ:{
                 current_cpu->program_counter++;
