@@ -47,6 +47,10 @@ int main (int argc, char* argv[]){
         line_number++;
         /* replace the \n at the end of the line by \0*/
         line[strcspn(line,"\n")] = '\0';
+        /* Strip inline comment, get a pointer to any # in the line */
+        char *comment = strchr(line,'#');
+        /* if there is one, we replace it with \0 to skip the inline comment */
+        if (comment != NULL){ *comment = '\0';}
 
         if(line[0] == '\0' || line[0] == '#') {continue;}
         #if DEBUG
