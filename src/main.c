@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "cpu.h"
+#include "alu.h"
 
 int main(int argc, char* argv[]) {
 
@@ -44,7 +45,7 @@ int main(int argc, char* argv[]) {
                 micro_cpu.program_counter++;
                 break;
             case INS_ADD:
-                micro_cpu.reg_a = micro_cpu.reg_a + micro_cpu.reg_b;
+                micro_cpu.reg_a = alu_compute(ALU_ADD,micro_cpu.reg_a,micro_cpu.reg_b) ;
                 micro_cpu.program_counter++;
                 break;
             case INS_HLT:
