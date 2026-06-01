@@ -48,10 +48,58 @@ void test_cpu_jz() {
     printf("  -> PASS\n");
 }
 
+void test_cpu_stb() {
+    printf("Running test_cpu_stb...\n");
+
+    cpu test_cpu = {0};
+    test_cpu.reg_b = 0x37;
+    test_cpu.ram[0] = INS_STB;
+    test_cpu.ram[1] = 0x60;
+    test_cpu.program_counter = 0;
+
+    cpu_unit(&test_cpu);
+
+    assert(test_cpu.ram[0x60] == 0x37);
+    assert(test_cpu.program_counter == 2);
+    printf("  -> PASS\n");
+}
+
+void test_cpu_jmp() {
+    printf("Running test_cpu_jmp...\n");
+
+    cpu test_cpu = {0};
+    test_cpu.ram[0] = INS_JMP;
+    test_cpu.ram[1] = 0x42;
+    test_cpu.program_counter = 0;
+
+    cpu_unit(&test_cpu);
+
+    assert(test_cpu.program_counter == 0x42);
+    printf("  -> PASS\n");
+}
+
+void test_cpu_lda() {
+    printf("Running test_cpu_lda...\n");
+
+    cpu test_cpu = {0};
+    test_cpu.ram[0] = INS_LDA;
+    test_cpu.ram[1] = 0x55;
+    test_cpu.program_counter = 0;
+
+    cpu_unit(&test_cpu);
+
+    assert(test_cpu.reg_a == 0x55);
+    assert(test_cpu.program_counter == 2);
+    printf("  -> PASS\n");
+}
+
 int main() {
     printf("=== Starting CPU Test Suite ===\n");
     test_cpu_sta();
+    test_cpu_stb();
+    test_cpu_jmp();
     test_cpu_jz();
+    test_cpu_lda();
     printf("=== All CPU tests passed successfully! ===\n");
     return 0;
 }
