@@ -1,8 +1,24 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "cpu.h"
+#include "asm.h"
 
-#define DEBUG 1
+/*Instructions table*/
+static const Instruction instruction_table[]= {
+    {"LDA", INS_LDA, true},
+    {"LDB", INS_LDB, true},
+    {"HLT", INS_HLT, false},
+    {"STA", INS_STA, true},
+    {"STB", INS_STB, true},
+    {"ADD", INS_ADD, false},
+    {"JMP", INS_JMP, true},
+    {"JZ", INS_JZ,true},
+    {"NOP", INS_NOP,false},
+    {"OUT", INS_OUT,false}
+};
+/* number of instructions in the table*/
+#define TABLE_SIZE ( sizeof(instruction_table) / sizeof(instruction_table[0]))
 
 int main (int argc, char* argv[]){
 
@@ -53,15 +69,51 @@ int main (int argc, char* argv[]){
         if (comment != NULL){ *comment = '\0';}
 
         if(line[0] == '\0' || line[0] == '#') {continue;}
-        #if DEBUG
-        printf("[line %d] %s\n", line_number,line);
-        #endif
-        /* TODO: parsing instructions.*/
+        /* storing instruction and argument*/
+        char instruction[64]={0};
+        char argument[64]={0};
 
+        int arg_found = sscanf(line,"%63s %63s",instruction,argument);
+        #if DEBUG
+        /* if empty line*/
+        if(arg_found == 0){continue;}
+        if(arg_found == 1){printf("[Line %02d] Opcode: %s (no Operand)\n",line_number,instruction);}
+        if(arg_found == 2){printf("[Line %02d] Opcode: %s Operand: %s\n",line_number,instruction,argument);}
+        #endif
+        /* output the line in file*/
+        output_code(binary_file,instruction,argument,line_number);       
     }
 
     /* Closing resources*/
     fclose(source);
     fclose(binary_file);
     return 0;
+}
+
+/* lookup for instrcution in the table and output opcode/operand in the file */
+int output_code(FILE *output, const char *instruction, const char *argument,uint32_t line_number){
+
+    /* loop the entire table*/
+
+    for(size_t i = 0; i < TABLE_SIZE;i++){
+        /* Check if instruction found*/
+        if ( strcmp(instruction,instruction_table[i].instruction) == 0){
+            /* output the instruction in the file*/
+            fputc(instruction_table[i].opcode,output);
+            /* if instructions has an argument, output it*/
+            if(instruction_table[i].need_operand == true){
+                uint32_t op_value;
+                /* check operand exists*/
+                if(sscanf(argument,"%i",&op_value) !=1){
+                    fprintf(stderr,"[Error Line %u]:No operand was given",line_number);
+                    return -1;
+                }
+                fputc((uint8_t)op_value,output);    
+            }
+            return 0;
+        }
+    }
+    /* Instruction not found*/
+    fprintf(stderr,"[Error Line %u]: Unknown instruction found",line_number);
+    return -1;
 }
