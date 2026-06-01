@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Iinclude
 
 # Files and directories
-SRC = src/main.c
+SRC = src/main.c src/alu.c
 TARGET = build/microcontrol
 
 # Default target
