@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#define DEBUG 1
 
 int main (int argc, char* argv[]){
 
@@ -32,6 +33,28 @@ int main (int argc, char* argv[]){
     }
 
     /* -- parsing logic will go here */
+
+    char line[256];
+    uint32_t line_number=0;
+
+    /* read till eof - fgets(char * destination, int size, FILE * fptr);*/
+    
+    #if DEBUG
+        printf("Assembling %s -> %s...\n", input, output);
+    #endif
+
+    while (fgets(line,sizeof(line),source) != NULL) {
+        line_number++;
+        /* replace the \n at the end of the line by \0*/
+        line[strcspn(line,"\n")] = '\0';
+
+        if(line[0] == '\0' || line[0] == '#') {continue;}
+        #if DEBUG
+        printf("[line %d] %s\n", line_number,line);
+        #endif
+        /* TODO: parsing instructions.*/
+
+    }
 
     /* Closing resources*/
     fclose(source);
