@@ -12,7 +12,9 @@ typedef enum Instructions{
     INS_LDA = 0x01,
     INS_HLT = 0xFF,
     INS_LDB = 0x02,
-    INS_ADD = 0x03
+    INS_ADD = 0x03,
+    INS_JMP = 0x04,
+    INS_OUT = 0x05
 }Instructions;
 
 /* Defines the cpu*/
