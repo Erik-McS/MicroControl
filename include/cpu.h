@@ -2,6 +2,7 @@
 # define CPU_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_RAM_SIZE 256
 #define DEBUG 1
@@ -14,7 +15,8 @@ typedef enum Instructions{
     INS_LDB = 0x02,
     INS_ADD = 0x03,
     INS_JMP = 0x04,
-    INS_OUT = 0x05
+    INS_OUT = 0x05,
+    INS_STA = 0x06
 }Instructions;
 
 /* Defines the cpu*/
@@ -27,6 +29,9 @@ typedef struct cpu
     uint8_t reg_b;
     /* PC */
     uint8_t program_counter;
+    bool is_halted;
 }cpu;
+
+void cpu_unit(cpu* current_cpu);
 
 #endif
