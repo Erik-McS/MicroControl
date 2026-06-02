@@ -15,7 +15,19 @@ typedef struct
     bool need_operand;
 }Instruction;
 
-/* fct to output the 'machine code' */
-int output_code(FILE *output, const char *instruction, const char *argument,uint32_t line_number);
+typedef struct 
+{
+    char opcode[16];
+    char arg1[32];
+    char arg2[32];
+}ParsedLine;
+
+
+
+/* Returns 1 if a valid instruction was parsed, 0 if it was an empty line/comment */
+int tokenize_line(char *raw_line, ParsedLine *parsed_data);
+
+/* Returns 0 on success, -1 on failure */
+int generate_binary(ParsedLine *parsed_data, FILE *output_file, uint32_t line_number);
 
 #endif
