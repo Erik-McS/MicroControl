@@ -60,5 +60,10 @@ typedef struct cpu
 
 
 void cpu_unit(cpu* current_cpu);
-
+void execute_arithmetic(cpu* current_cpu, uint8_t alu_operation);
+void execute_load(cpu* current_cpu);
+void execute_store(cpu* current_cpu);
+void execute_unary(cpu* current_cpu, uint8_t alu_operation);
+void execute_jmp(cpu* current_cpu);
+void execute_jz(cpu* current_cpu);
 #endif
