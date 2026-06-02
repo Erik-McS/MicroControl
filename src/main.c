@@ -32,34 +32,48 @@ int main(int argc, char* argv[]) {
     #if DEBUG
         debug_output(&micro_cpu);
     #endif
-    printf("Value in reg_a: %02X \n", micro_cpu.reg_a);
     return 0;
 }
 
-void debug_output(cpu *micro_cpu){
+void debug_output(cpu *micro_cpu) {
     printf("\n=========================================\n");
     printf("     MICROCONTROL POST-EXECUTION DUMP    \n");
     printf("=========================================\n");
     
-    /* 1. Print Internal CPU Registers */
+    /* 1. Print Internal CPU State */
     printf("REGISTERS:\n");
-    printf("  Reg A:  %02X\n", micro_cpu->reg_a);
-    printf("  Reg B:  %02X\n", micro_cpu->reg_b); // Now that you have STB!
+    
+    /* Loop through the new 4-Register RISC array */
+    for (int i = 0; i < 4; i++) {
+        printf("  R%d:     %02X\n", i, micro_cpu->registers[i]);
+    }
+    
     printf("  PC:     %02X\n", micro_cpu->program_counter);
-    printf("  Flags:  %02X\n", micro_cpu->status_flags);
+    
+    /* Flag Decoder: Translates the hex into visual bits */
+    printf("  Flags:  %02X [ ", micro_cpu->status_flags);
+    printf((micro_cpu->status_flags & FLAG_ZERO) ? "Z " : "- ");
+    printf((micro_cpu->status_flags & FLAG_C) ? "C " : "- ");
+    printf("]\n");
+    
+    if (micro_cpu->is_halted) {
+        printf("  State:  HALTED\n");
+    } else {
+        printf("  State:  RUNNING\n");
+    }
     printf("\n");
 
-    /* 2. Print RAM in a clean, professional Hex Grid */
-    printf("RAM DUMP (First 16 Bytes):\n");
+    /* 2. Print RAM in a Hex Grid (Expanded to 32 Bytes) */
+    printf("RAM DUMP (First 32 Bytes):\n");
     printf("Addr | Bytes\n");
     printf("-----+-----------------------------------\n");
     printf("0x00 | ");
     
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 32; i++) {
         printf("%02X ", micro_cpu->ram[i]);
         
         /* Insert a clean line break every 8 bytes to keep it scannable */
-        if ((i + 1) % 8 == 0 && i < 15) {
+        if ((i + 1) % 8 == 0 && i < 31) {
             printf("\n0x%02X | ", i + 1);
         }
     }

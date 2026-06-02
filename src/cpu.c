@@ -245,7 +245,6 @@ void cpu_unit(cpu* current_cpu){
                 break;
             case INS_JMP:{
                 uint8_t routing = current_cpu->ram[current_cpu->program_counter];
-                uint8_t source = routing & SOURCE_MASK;
                 if( !(ISIMMEDIATE(routing)) ){
                     fprintf(stderr,"Invalid operation, illegal memory access");
                     current_cpu->is_halted = true;
@@ -260,9 +259,11 @@ void cpu_unit(cpu* current_cpu){
                 }
                 /* from register*/
                 else if( (ISIMMEDIATE(routing)) && (ISMEMORY(routing))){
+                    uint8_t source = routing & SOURCE_MASK;
                     current_cpu->program_counter = current_cpu->registers[source];
                     break;
                 }
+                break;
             }
             case INS_OUT:{
                 uint8_t routing = current_cpu->ram[current_cpu->program_counter];

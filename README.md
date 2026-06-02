@@ -2,7 +2,7 @@
 
 A custom 8-bit CPU emulator and assembler built from scratch in C, as a practical exercise in computer architecture and low-level systems programming.
 
-The project simulates a Von Neumann architecture machine with a working fetch-decode-execute cycle, a full ALU, a status flag register, and a two-tool chain: write assembly source, assemble it to a binary ROM, and run it on the emulated CPU.
+The project simulates a RISC-inspired Von Neumann architecture machine with a fetch-decode-execute cycle, a register file, a full ALU, a status flag register, and a two-tool chain: write assembly source, assemble it to a binary ROM, and run it on the emulated CPU.
 
 ---
 
@@ -11,8 +11,9 @@ The project simulates a Von Neumann architecture machine with a working fetch-de
 | Component | Detail |
 | :--- | :--- |
 | Memory | 256 bytes of RAM |
-| Registers | Two general-purpose 8-bit registers (A and B) |
+| Register file | 4 general-purpose 8-bit registers (R0–R3) |
 | Program Counter | 8-bit |
+| Stack Pointer | 8-bit (reserved) |
 | Status Flags | Zero, Negative, Carry, Overflow |
 | Data width | 8-bit |
 
@@ -22,31 +23,56 @@ The project simulates a Von Neumann architecture machine with a working fetch-de
 | :--- | :---: | :--- |
 | Zero | 0 | Result equals 0 |
 | Negative | 1 | Bit 7 of result is set (two's complement negative) |
-| Carry | 2 | Unsigned overflow on addition |
+| Carry | 2 | Unsigned overflow on ADD, underflow on SUB |
 | Overflow | 3 | Reserved for signed overflow detection |
+
+---
+
+## Routing Byte
+
+Most instructions take a routing byte as their first operand. It encodes the addressing mode, destination register, and source register in a single byte:
+
+```
+[ I ] [ M ] [ x ] [ x ] [ Dest 1 ] [ Dest 0 ] [ Src 1 ] [ Src 0 ]
+  7     6     5     4        3          2          1         0
+```
+
+| Bit | Name | Meaning |
+| :---: | :--- | :--- |
+| 7 | Immediate (I) | Operand follows in the next byte, or selects immediate/register-indirect mode |
+| 6 | Memory (M) | Operation involves a memory address |
+| 3–2 | Destination | Index into the register file (0–3) |
+| 1–0 | Source | Index into the register file (0–3) |
+
+### Addressing Modes
+
+| I | M | Mode | Description |
+| :---: | :---: | :--- | :--- |
+| 0 | 0 | Register to Register | Source and destination are both registers |
+| 1 | 0 | Immediate | Value follows in the next byte |
+| 0 | 1 | Memory Direct | Address follows in the next byte |
+| 1 | 1 | Register Indirect | Address is held in the source register |
 
 ---
 
 ## Instruction Set
 
-| Mnemonic | Opcode | Bytes | Description |
-| :--- | :---: | :---: | :--- |
-| NOP | `0x00` | 1 | No operation |
-| LDA | `0x01` | 2 | Load immediate value into Register A |
-| LDB | `0x02` | 2 | Load immediate value into Register B |
-| ADD | `0x03` | 1 | A = A + B. Updates Zero, Negative, Carry flags |
-| SUB | `0x04` | 1 | A = A - B. Updates Zero and Negative flags |
-| AND | `0x05` | 1 | A = A & B. Updates Zero and Negative flags |
-| OR  | `0x06` | 1 | A = A \| B. Updates Zero and Negative flags |
-| XOR | `0x07` | 1 | A = A ^ B. Updates Zero and Negative flags |
-| INC | `0x08` | 1 | A = A + 1. Updates Zero and Negative flags |
-| DEC | `0x09` | 1 | A = A - 1. Updates Zero and Negative flags |
-| JMP | `0x0A` | 2 | Unconditional jump to address |
-| OUT | `0x0B` | 1 | Print current value of Register A to stdout |
-| STA | `0x0C` | 2 | Store Register A at a given RAM address |
-| STB | `0x0D` | 2 | Store Register B at a given RAM address |
-| JZ  | `0x0E` | 2 | Jump to address if Zero flag is set |
-| HLT | `0xFF` | 1 | Halt execution |
+| Mnemonic | Opcode | Description |
+| :--- | :---: | :--- |
+| NOP | `0x00` | No operation |
+| LD  | `0x01` | Load value into destination register. Supports immediate, memory direct, register indirect, and register-to-register modes |
+| ADD | `0x02` | Destination = Destination + Source. Supports all addressing modes. Updates Zero, Negative, Carry flags |
+| SUB | `0x03` | Destination = Destination - Source. Supports all addressing modes. Updates Zero, Negative, Carry flags |
+| AND | `0x04` | Destination = Destination & Source. Supports all addressing modes. Updates Zero and Negative flags |
+| OR  | `0x05` | Destination = Destination \| Source. Supports all addressing modes. Updates Zero and Negative flags |
+| XOR | `0x06` | Destination = Destination ^ Source. Supports all addressing modes. Updates Zero and Negative flags |
+| INC | `0x07` | Destination = Destination + 1. Updates Zero and Negative flags |
+| DEC | `0x08` | Destination = Destination - 1. Updates Zero and Negative flags |
+| JMP | `0x09` | Jump to address. Supports immediate mode (address in next byte) and register indirect (address in source register) |
+| OUT | `0x0A` | Print value of destination register to stdout |
+| ST  | `0x0B` | Store source register to memory. Supports memory direct and register indirect modes |
+| JZ  | `0x0C` | Jump if Zero flag is set. Supports immediate and register indirect modes |
+| HLT | `0xFF` | Halt execution |
 
 ---
 
@@ -54,7 +80,7 @@ The project simulates a Von Neumann architecture machine with a working fetch-de
 
 The project produces two separate binaries:
 
-**Emulator** (`build/microcontrol`) — loads a raw binary ROM into virtual RAM and runs the CPU loop until `HLT`. In debug mode, prints a post-execution register and RAM dump showing the final machine state.
+**Emulator** (`build/microcontrol`) — loads a raw binary ROM into virtual RAM and runs the CPU loop until `HLT` or an illegal instruction. In debug mode, prints a post-execution register and RAM dump showing the final machine state.
 
 **Assembler** (`build/asm`) — takes a plain text assembly file and outputs a raw binary ready to load into the emulator. Supports inline comments with `#` and both decimal and hex operands.
 
@@ -70,7 +96,7 @@ MicroControl/
 │   ├── alu.c           # Arithmetic Logic Unit and flag updates
 │   └── asm.c           # Assembler entry point and parser
 ├── include/
-│   ├── cpu.h           # CPU struct, ISA enum, flag definitions
+│   ├── cpu.h           # CPU struct, ISA enum, routing macros, flag definitions
 │   ├── alu.h           # ALU operations enum and function declarations
 │   └── asm.h           # Instruction struct and assembler declarations
 ├── tests/
@@ -84,8 +110,6 @@ MicroControl/
 ---
 
 ## Building and Running
-
-All build targets are managed through `make`.
 
 **Build the emulator:**
 ```bash
@@ -114,12 +138,11 @@ make test
 Assembly files are plain text, one instruction per line. Comments start with `#`.
 
 ```asm
-# Countdown loop: decrement A until it reaches zero
-LDA 0x05      # Load 5 into A
-LDB 0x01      # Load 1 into B
-SUB           # A = A - B, sets Zero flag when A reaches 0
-JZ  0x00      # Jump back to start if zero
-JMP 0x02      # Otherwise keep looping
+# Load 5 into R0, decrement until zero
+LD  0x80 0x05   # Immediate load: R0 = 5  (routing: I=1, M=0, dest=R0)
+DEC 0x00        # Decrement R0            (routing: dest=R0)
+JZ  0x80 0x00   # Jump to 0x00 if zero    (routing: immediate mode)
+JMP 0x80 0x01   # Jump back to DEC
 HLT
 ```
 
@@ -136,4 +159,5 @@ Assemble and run:
 - JNZ (jump if not zero) for cleaner loop control
 - JN (jump if negative) for signed branching
 - Signed overflow detection for the Overflow flag
-- Expanded test coverage for all ALU operations and new instructions
+- Stack operations (PUSH / POP) using the stack pointer
+- Expanded test coverage for the new routing byte addressing modes
