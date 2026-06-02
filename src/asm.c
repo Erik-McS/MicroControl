@@ -15,6 +15,12 @@ static const Instruction instruction_table[]= {
     {"JMP", INS_JMP, true},
     {"JZ", INS_JZ,true},
     {"NOP", INS_NOP,false},
+    {"SUB", INS_SUB,false},
+    {"AND", INS_AND,false},
+    {"OR", INS_OR,false},
+    {"XOR", INS_XOR,false},
+    {"DEC", INS_DEC,false},
+    {"INC", INS_INC,false},
     {"OUT", INS_OUT,false}
 };
 /* number of instructions in the table*/
