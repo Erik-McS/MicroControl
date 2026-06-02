@@ -45,6 +45,7 @@ typedef struct cpu
     uint8_t program_counter;
     bool is_halted;
     uint8_t status_flags;
+    uint8_t stack_pointer;
 }cpu;
 
 

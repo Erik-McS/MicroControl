@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
 
     cpu micro_cpu = {0};
     micro_cpu.is_halted = false;
+    micro_cpu.stack_pointer = 0xFF;
     FILE* rom;
     rom = fopen(argv[1],"rb");
     
