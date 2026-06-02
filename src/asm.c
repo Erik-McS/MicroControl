@@ -6,11 +6,9 @@
 
 /*Instructions table*/
 static const Instruction instruction_table[]= {
-    {"LDA", INS_LDA, true},
-    {"LDB", INS_LDB, true},
+    {"LDA", INS_LD, true},
     {"HLT", INS_HLT, false},
-    {"STA", INS_STA, true},
-    {"STB", INS_STB, true},
+    {"STA", INS_ST, true},
     {"ADD", INS_ADD, false},
     {"JMP", INS_JMP, true},
     {"JZ", INS_JZ,true},
@@ -67,27 +65,10 @@ int main (int argc, char* argv[]){
 
     while (fgets(line,sizeof(line),source) != NULL) {
         line_number++;
-        /* replace the \n at the end of the line by \0*/
-        line[strcspn(line,"\n")] = '\0';
-        /* Strip inline comment, get a pointer to any # in the line */
-        char *comment = strchr(line,'#');
-        /* if there is one, we replace it with \0 to skip the inline comment */
-        if (comment != NULL){ *comment = '\0';}
+        
+        
 
-        if(line[0] == '\0' || line[0] == '#') {continue;}
-        /* storing instruction and argument*/
-        char instruction[64]={0};
-        char argument[64]={0};
-
-        int arg_found = sscanf(line,"%63s %63s",instruction,argument);
-        #if DEBUG
-        /* if empty line*/
-        if(arg_found == 0){continue;}
-        if(arg_found == 1){printf("[Line %02d] Opcode: %s (no Operand)\n",line_number,instruction);}
-        if(arg_found == 2){printf("[Line %02d] Opcode: %s Operand: %s\n",line_number,instruction,argument);}
-        #endif
-        /* output the line in file*/
-        output_code(binary_file,instruction,argument,line_number);       
+     
     }
 
     /* Closing resources*/
@@ -96,30 +77,37 @@ int main (int argc, char* argv[]){
     return 0;
 }
 
-/* lookup for instrcution in the table and output opcode/operand in the file */
-int output_code(FILE *output, const char *instruction, const char *argument,uint32_t line_number){
+int tokenize_line(char *raw_line, ParsedLine *parsed_data){
+    /* Strip inline comment, get a pointer to any # in the line */
+    char *comment = strchr(raw_line,'#');
+    /* if there is one, we replace it with \0 to skip the inline comment */
+    if (comment != NULL){ *comment = '\0';}
 
-    /* loop the entire table*/
+    char *token = strtok(raw_line," ,\t\r\n");
+    /* if empty, skip */
+    if(token == NULL){return 0;}
+    /* copy op */
+    strncpy(parsed_data->opcode,token,sizeof(token)-1);
+    parsed_data->opcode[sizeof(parsed_data->opcode)-1] = '\0'; /* add end of string */
 
-    for(size_t i = 0; i < TABLE_SIZE;i++){
-        /* Check if instruction found*/
-        if ( strcmp(instruction,instruction_table[i].instruction) == 0){
-            /* output the instruction in the file*/
-            fputc(instruction_table[i].opcode,output);
-            /* if instructions has an argument, output it*/
-            if(instruction_table[i].need_operand == true){
-                uint32_t op_value;
-                /* check operand exists*/
-                if(sscanf(argument,"%i",&op_value) !=1){
-                    fprintf(stderr,"[Error Line %u]:No operand was given",line_number);
-                    return -1;
-                }
-                fputc((uint8_t)op_value,output);    
-            }
-            return 0;
-        }
+    /* get first arg: destination*/
+    token = strtok(NULL," ,\t\r\n");
+    if(token != NULL){
+        strncpy(parsed_data->arg1,token,sizeof(token)-1);
+        parsed_data->arg1[sizeof(parsed_data->arg1)-1] = '\0';
     }
-    /* Instruction not found*/
-    fprintf(stderr,"[Error Line %u]: Unknown instruction found",line_number);
-    return -1;
+    else{
+        parsed_data->arg1[0] = '\0';
+    }
+    /* get second arg: source/payload*/
+    token = strtok(NULL," ,\t\r\n");
+    if(token != NULL){
+        strncpy(parsed_data->arg2,token,sizeof(token)-1);
+        parsed_data->arg2[sizeof(parsed_data->arg2)-1] = '\0';
+    }
+    else{
+        parsed_data->arg2[0] = '\0';
+    }
+    return 1;
 }
+
