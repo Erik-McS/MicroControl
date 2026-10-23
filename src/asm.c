@@ -4,7 +4,7 @@
 #include "cpu.h"
 #include "asm.h"
 
-/*Instructions table*/
+/* Maps each supported assembly mnemonic to its CPU opcode and operand metadata. */
 static const Instruction instruction_table[]= {
     {"LDA", INS_LD, true},
     {"HLT", INS_HLT, false},
@@ -21,20 +21,23 @@ static const Instruction instruction_table[]= {
     {"INC", INS_INC,false},
     {"OUT", INS_OUT,false}
 };
-/* number of instructions in the table*/
+/* Number of entries in instruction_table, without hard-coding its length. */
 #define TABLE_SIZE ( sizeof(instruction_table) / sizeof(instruction_table[0]))
 
 int main (int argc, char* argv[]){
 
+    /* Use output.bin unless the caller supplies an output name. */
     char *output = "output.bin";
     static char custom_name[256];
 
+    /* Require an input file and allow at most one optional output name. */
     if(argc >3 || argc <2){
         fprintf(stderr,"Invalid number of arguments\n");
         fprintf(stderr,"usage: %s <input,txt> [] output name",argv[0]);
         return 1;
     }
 
+    /* Open the assembly source as a text file. */
     char *input = argv[1];
     FILE *source = fopen(input,"r");
     if(source == NULL){
@@ -43,54 +46,54 @@ int main (int argc, char* argv[]){
     }
 
     if(argc == 3){
-    snprintf(custom_name,sizeof(custom_name),"%s.bin",argv[2]);
-    output = custom_name;        
+        /* The optional name is a base name; the assembler adds the .bin suffix. */
+        snprintf(custom_name,sizeof(custom_name),"%s.bin",argv[2]);
+        output = custom_name;
     }
 
+    /* Create/truncate the output file in binary mode. */
     FILE *binary_file = fopen(output,"wb");
     if(binary_file == NULL){
         fprintf(stderr,"Could not create binary");
     }
 
-    /* -- parsing logic will go here */
+    /* Assembly parsing and instruction encoding have not been implemented here yet. */
 
+    /* Buffer for one source line; line_number tracks its position for future diagnostics. */
     char line[256];
     uint32_t line_number=0;
-
-    /* read till eof - fgets(char * destination, int size, FILE * fptr);*/
     
     #if DEBUG
+        /* Show which source and output paths this run is using. */
         printf("Assembling %s -> %s...\n", input, output);
     #endif
 
+    /* Read the source one line at a time. The loop body is currently a placeholder. */
     while (fgets(line,sizeof(line),source) != NULL) {
         line_number++;
-        
-        
-
-     
     }
 
-    /* Closing resources*/
+    /* Release the files opened by this function. */
     fclose(source);
     fclose(binary_file);
     return 0;
 }
 
 int tokenize_line(char *raw_line, ParsedLine *parsed_data){
-    /* Strip inline comment, get a pointer to any # in the line */
+    /* Treat everything from '#' to the end of the line as a comment. */
     char *comment = strchr(raw_line,'#');
-    /* if there is one, we replace it with \0 to skip the inline comment */
     if (comment != NULL){ *comment = '\0';}
 
+    /* Split in place on whitespace and commas; strtok modifies raw_line. */
     char *token = strtok(raw_line," ,\t\r\n");
-    /* if empty, skip */
+    /* No token means the line was blank or contained only a comment. */
     if(token == NULL){return 0;}
-    /* copy op */
-    strncpy(parsed_data->opcode,token,sizeof(token)-1);
-    parsed_data->opcode[sizeof(parsed_data->opcode)-1] = '\0'; /* add end of string */
 
-    /* get first arg: destination*/
+    /* The first token is the mnemonic/opcode text. */
+    strncpy(parsed_data->opcode,token,sizeof(token)-1);
+    parsed_data->opcode[sizeof(parsed_data->opcode)-1] = '\0';
+
+    /* The next token is arg1 (typically a destination register). */
     token = strtok(NULL," ,\t\r\n");
     if(token != NULL){
         strncpy(parsed_data->arg1,token,sizeof(token)-1);
@@ -99,7 +102,8 @@ int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     else{
         parsed_data->arg1[0] = '\0';
     }
-    /* get second arg: source/payload*/
+
+    /* The following token is arg2 (typically a source or immediate payload). */
     token = strtok(NULL," ,\t\r\n");
     if(token != NULL){
         strncpy(parsed_data->arg2,token,sizeof(token)-1);
@@ -108,6 +112,7 @@ int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     else{
         parsed_data->arg2[0] = '\0';
     }
+
+    /* Additional tokens are not stored; report that a non-empty line was parsed. */
     return 1;
 }
-

@@ -1,8 +1,10 @@
 #include "alu.h"
 
-
+/* Apply an ALU operation to the supplied 8-bit operands and return its result.
+ * The caller is responsible for updating CPU status flags.
+ */
 uint8_t alu_compute(uint8_t operation,uint8_t operand_a, uint8_t operand_b){
-    /* Compute operations, flags are handled in the cpu switch.*/
+    /* uint8_t arithmetic naturally wraps modulo 256. */
     switch (operation)
     {
     case ALU_ADD:
@@ -20,14 +22,17 @@ uint8_t alu_compute(uint8_t operation,uint8_t operand_a, uint8_t operand_b){
     case ALU_DEC:
         return operand_a -1;  
     default:
+        /* Unknown operation codes produce zero; no status flags are changed here. */
         return 0;
     }
 }
 
+/* Update the result-dependent flags, preserving carry and overflow. */
 void alu_update_flags(cpu *cpu,uint8_t result){
-    /* clear flags*/
+    /* Zero and negative describe the latest result, so clear their old values. */
     cpu->status_flags &= ~(FLAG_ZERO | FLAG_NEG);
-    /* Setting flags*/
+
+    /* A zero result sets ZERO; bit 7 set means the 8-bit result is negative. */
     if (result == 0){ cpu->status_flags |= FLAG_ZERO;}
     if ((result & 0x80) != 0){cpu->status_flags |= FLAG_NEG;}
 
