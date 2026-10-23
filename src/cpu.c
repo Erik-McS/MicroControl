@@ -45,6 +45,7 @@ void cpu_unit(cpu* current_cpu) {
 }
 
 void execute_arithmetic(cpu* current_cpu, uint8_t alu_operation) {
+    /* The PC points to the routing byte; its low fields select the registers. */
     uint8_t routing = current_cpu->ram[current_cpu->program_counter];
     uint8_t destination = (routing & DESTINATION_MASK) >> 2;
     uint8_t source = routing & SOURCE_MASK;
@@ -53,19 +54,22 @@ void execute_arithmetic(cpu* current_cpu, uint8_t alu_operation) {
     uint8_t original_dest_value = current_cpu->registers[destination];
     uint8_t operand_value;
 
-    /* Routing */
+    /* I/M = 10: consume the following byte as the literal operand. */
     if (ISIMMEDIATE(routing) && !ISMEMORY(routing)) {
         current_cpu->program_counter++;
         operand_value = current_cpu->ram[current_cpu->program_counter];
     } 
+    /* I/M = 01: consume the following byte as a RAM address, then read it. */
     else if (!ISIMMEDIATE(routing) && ISMEMORY(routing)) {
         current_cpu->program_counter++;
         uint8_t address = current_cpu->ram[current_cpu->program_counter];
         operand_value = current_cpu->ram[address];
     } 
+    /* I/M = 11: the source register contains the RAM address to read. */
     else if (ISIMMEDIATE(routing) && ISMEMORY(routing)) {
         operand_value = current_cpu->ram[current_cpu->registers[source]];
     } 
+    /* I/M = 00: use the value in the source register directly. */
     else {
         operand_value = current_cpu->registers[source];
     }
@@ -88,7 +92,7 @@ void execute_arithmetic(cpu* current_cpu, uint8_t alu_operation) {
         }
     }
 
-    /* Final PC increment to step over the instruction */
+    /* Advance past the routing byte (and any operand/address byte already read). */
     current_cpu->program_counter++;
 }
 
