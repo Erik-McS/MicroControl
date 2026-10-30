@@ -79,9 +79,20 @@ int main (int argc, char* argv[]){
     fclose(binary_file);
     return 0;
 }
-/* Tokenize a single line of assembly code into its components. 
-    returns 1 if a non-empty line was parsed, 0 if the line was empty or a comment, and -1 if the mnemonic was invalid. */
+/* Tokenize a line: return 1 for a valid instruction, 0 for blank/comment-only,
+ * or -1 for an invalid mnemonic or tokens that do not fit the parsed fields.
+ */
 int tokenize_line(char *raw_line, ParsedLine *parsed_data){
+    /* Reject missing inputs before inspecting or writing through either pointer. */
+    if (raw_line == NULL || parsed_data == NULL) {
+        return -1;
+    }
+
+    /* Clear all fields so a failed parse cannot leave values from an earlier line. */
+    parsed_data->opcode[0] = '\0';
+    parsed_data->arg1[0] = '\0';
+    parsed_data->arg2[0] = '\0';
+
     /* Treat everything from '#' to the end of the line as a comment. */
     char *comment = strchr(raw_line,'#');
     if (comment != NULL){ *comment = '\0';}
@@ -91,27 +102,33 @@ int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     /* No token means the line was blank or contained only a comment. */
     if(token == NULL){return 0;}
 
-    /* The first token is the mnemonic/opcode text. */
-    c_stringcpy(parsed_data->opcode,token,sizeof(parsed_data->opcode));
-    if(is_mnemonic(parsed_data->opcode,instruction_table,TABLE_SIZE) !=1){return -1;} /* Invalid mnemonic */
-
-    /* The next token is arg1 (typically a destination register). */
-    token = strtok(NULL," ,\t\r\n");
-    if(token != NULL){
-        c_stringcpy(parsed_data->arg1,token,sizeof(parsed_data->arg1));
-    }
-    else{
-        parsed_data->arg1[0] = '\0';
+    /* Store the mnemonic without truncation, then reject names absent from the ISA table. */
+    if (c_stringcpy(parsed_data->opcode, token, sizeof(parsed_data->opcode)) != 0 ||
+        is_mnemonic(parsed_data->opcode, instruction_table, TABLE_SIZE) != 1) {
+        return -1;
     }
 
-    /* The following token is arg2 (typically a source or immediate payload). */
+    /* Store up to two operands; c_stringcpy reports tokens too large for their fields. */
     token = strtok(NULL," ,\t\r\n");
     if(token != NULL){
-        c_stringcpy(parsed_data->arg2,token,sizeof(parsed_data->arg2));
+        if (c_stringcpy(parsed_data->arg1, token, sizeof(parsed_data->arg1)) != 0) {
+            return -1;
+        }
     }
-    else{
-        parsed_data->arg2[0] = '\0';
+
+    /* arg2 is typically a source register, routing byte, or immediate payload. */
+    token = strtok(NULL," ,\t\r\n");
+    if(token != NULL){
+        if (c_stringcpy(parsed_data->arg2, token, sizeof(parsed_data->arg2)) != 0) {
+            return -1;
+        }
     }
-    /* Additional tokens are not stored; report that a non-empty line was parsed. */
+
+    /* Reject extra operands instead of silently ignoring input the parser cannot store. */
+    if (strtok(NULL, " ,\t\r\n") != NULL) {
+        return -1;
+    }
+
+    /* The caller can now distinguish this instruction from blank lines and parse errors. */
     return 1;
 }
