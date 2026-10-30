@@ -3,6 +3,7 @@
 #include <string.h>
 #include "cpu.h"
 #include "asm.h"
+#include "helpers.h"
 
 /* Maps each supported assembly mnemonic to its CPU opcode and operand metadata. */
 static const Instruction instruction_table[]= {
@@ -78,7 +79,8 @@ int main (int argc, char* argv[]){
     fclose(binary_file);
     return 0;
 }
-
+/* Tokenize a single line of assembly code into its components. 
+    returns 1 if a non-empty line was parsed, 0 if the line was empty or a comment, and -1 if the mnemonic was invalid. */
 int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     /* Treat everything from '#' to the end of the line as a comment. */
     char *comment = strchr(raw_line,'#');
@@ -90,14 +92,13 @@ int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     if(token == NULL){return 0;}
 
     /* The first token is the mnemonic/opcode text. */
-    strncpy(parsed_data->opcode,token,sizeof(token)-1);
-    parsed_data->opcode[sizeof(parsed_data->opcode)-1] = '\0';
+    c_stringcpy(parsed_data->opcode,token,sizeof(parsed_data->opcode));
+    if(is_mnemonic(parsed_data->opcode,instruction_table,TABLE_SIZE) !=1){return -1;} /* Invalid mnemonic */
 
     /* The next token is arg1 (typically a destination register). */
     token = strtok(NULL," ,\t\r\n");
     if(token != NULL){
-        strncpy(parsed_data->arg1,token,sizeof(token)-1);
-        parsed_data->arg1[sizeof(parsed_data->arg1)-1] = '\0';
+        c_stringcpy(parsed_data->arg1,token,sizeof(parsed_data->arg1));
     }
     else{
         parsed_data->arg1[0] = '\0';
@@ -106,13 +107,11 @@ int tokenize_line(char *raw_line, ParsedLine *parsed_data){
     /* The following token is arg2 (typically a source or immediate payload). */
     token = strtok(NULL," ,\t\r\n");
     if(token != NULL){
-        strncpy(parsed_data->arg2,token,sizeof(token)-1);
-        parsed_data->arg2[sizeof(parsed_data->arg2)-1] = '\0';
+        c_stringcpy(parsed_data->arg2,token,sizeof(parsed_data->arg2));
     }
     else{
         parsed_data->arg2[0] = '\0';
     }
-
     /* Additional tokens are not stored; report that a non-empty line was parsed. */
     return 1;
 }
