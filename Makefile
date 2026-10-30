@@ -15,9 +15,9 @@ $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET)
 
 # Target to compile the standalone assembler
-asm: src/asm.c
+asm: src/asm.c src/helpers.c include/asm.h include/helpers.h
 	@mkdir -p build
-	$(CC) $(CFLAGS) -o build/asm src/asm.c
+	$(CC) $(CFLAGS) -o build/asm src/asm.c src/helpers.c
 
 clean:
 	rm -rf build/*

@@ -23,7 +23,8 @@ typedef struct
 
 
 /* Split a source line into opcode and up to two arguments.
- * Returns 1 for a non-empty line, or 0 for a blank/comment-only line.
+ * Returns 1 for a valid instruction, 0 for a blank/comment-only line,
+ * or -1 for an invalid mnemonic or token that cannot be stored.
  */
 int tokenize_line(char *raw_line, ParsedLine *parsed_data);
 
